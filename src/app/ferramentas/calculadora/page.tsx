@@ -20,16 +20,63 @@ interface Resultado {
   valorTotal: number;
 }
 
-// ─── API Helpers (100% gratuitas, sem chave) ─────────────────
+// ─── Configuração Regional ───────────────────────────────────
+// Centro de Curitiba — referência para validação de distância
+const CURITIBA = { lat: -25.4284, lon: -49.2733 };
+// Raio máximo permitido (km) a partir do centro de Curitiba
+const RAIO_MAX_KM = 150;
+// Bounding box da região de Curitiba e Grande Curitiba (viewbox para o Nominatim)
+// lon_min, lat_max, lon_max, lat_min
+const VIEWBOX_CURITIBA = '-50.8,-24.8,-48.2,-26.2';
 
-/** Nominatim: converte endereço em lat/lon */
-async function geocodificar(endereco: string): Promise<GeoResult> {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(endereco)}&format=json&limit=1&countrycodes=br`;
+/** Distância em km entre dois pontos (fórmula de Haversine) */
+function distanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/** Normaliza o endereço sempre adicionando "Curitiba, Paraná" se não especificado */
+function normalizarEndereco(endereco: string): string {
+  const lower = endereco.toLowerCase();
+  // Se já menciona Curitiba, Paraná, PR ou outra cidade grande, usa como está
+  if (lower.includes('curitiba') || lower.includes('paraná') || lower.includes(', pr') || lower.includes(', sp') || lower.includes(', rj')) {
+    return endereco;
+  }
+  // Adiciona automaticamente o contexto de Curitiba
+  return `${endereco.trim()}, Curitiba, Paraná`;
+}
+
+/** Nominatim: converte endereço em lat/lon — biasado para Curitiba/PR */
+async function geocodificar(enderecoRaw: string): Promise<GeoResult> {
+  const endereco = normalizarEndereco(enderecoRaw);
+  // viewbox biasa os resultados para a região de Curitiba; bounded=0 = prefere, mas não limita
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(endereco)}&format=json&limit=1&countrycodes=br&viewbox=${VIEWBOX_CURITIBA}&bounded=0`;
   const res = await fetch(url, {
     headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'Motoboot-App/1.0' },
   });
   const data: GeoResult[] = await res.json();
-  if (!data || data.length === 0) throw new Error('Endereço não encontrado. Tente ser mais específico.');
+  if (!data || data.length === 0) {
+    throw new Error(`Endereço não encontrado: "${enderecoRaw}". Tente incluir o bairro ou número.`);
+  }
+
+  // Valida se o resultado está dentro do raio máximo de Curitiba
+  const lat = parseFloat(data[0].lat);
+  const lon = parseFloat(data[0].lon);
+  const distDoCentro = distanciaHaversine(CURITIBA.lat, CURITIBA.lon, lat, lon);
+  if (distDoCentro > RAIO_MAX_KM) {
+    throw new Error(
+      `O endereço "${enderecoRaw}" foi encontrado fora da região de Curitiba (${Math.round(distDoCentro)} km de distância). ` +
+      `Inclua o bairro ou "Curitiba, PR" no endereço.`
+    );
+  }
+
   return data[0];
 }
 
@@ -48,6 +95,7 @@ async function calcularRota(
     duracaoMin: Math.round(duration / 60),
   };
 }
+
 
 // ─── Componente Principal ─────────────────────────────────────
 export default function CalculadoraPage() {
@@ -216,6 +264,12 @@ export default function CalculadoraPage() {
             </div>
           </div>
 
+          {/* Badge regional */}
+          <div className={calcStyles.regionBadge}>
+            <MapPin size={12} />
+            Curitiba e Região Metropolitana — PR
+          </div>
+
           {/* Formulário */}
           <div className={calcStyles.card}>
             {/* Ponto A */}
@@ -229,7 +283,7 @@ export default function CalculadoraPage() {
                   id="input-ponto-a"
                   type="text"
                   className={calcStyles.input}
-                  placeholder="Ex: Av. Paulista, 1000, São Paulo"
+                  placeholder="Ex: Av. Sete de Setembro, 3165 — ou use o GPS 📍"
                   value={enderecoALabel || pontoA}
                   onChange={(e) => {
                     setPontoA(e.target.value);
@@ -268,7 +322,7 @@ export default function CalculadoraPage() {
                 id="input-ponto-b"
                 type="text"
                 className={calcStyles.input}
-                placeholder="Ex: Shopping Ibirapuera, São Paulo"
+                placeholder="Ex: Bairro Água Verde, Rua João Negrão"
                 value={pontoB}
                 onChange={(e) => { setPontoB(e.target.value); setEnderecoBLabel(''); }}
               />
