@@ -141,7 +141,56 @@
   cursor: not-allowed;
 }
 
-/* Label do endereço resolvido */
+/* Input com prefixo R$ */
+.prefixInputRow {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.prefixInputRow:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: var(--bg-card);
+  border-right: 1.5px solid var(--border-subtle);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.inputWithPrefix {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: var(--bg-elevated);
+}
+
+.inputWithPrefix:focus {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Dica do campo */
+.fieldHint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0 2px;
+  opacity: 0.75;
+}
+
 .resolvedLabel {
   display: flex;
   align-items: center;

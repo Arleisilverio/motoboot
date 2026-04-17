@@ -54,6 +54,7 @@ export default function CalculadoraPage() {
   const [pontoA, setPontoA] = useState('');
   const [pontoB, setPontoB] = useState('');
   const [valorPorKm, setValorPorKm] = useState('');
+  const [valorMinimo, setValorMinimo] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingGps, setLoadingGps] = useState(false);
   const [resultado, setResultado] = useState<Resultado | null>(null);
@@ -107,6 +108,14 @@ export default function CalculadoraPage() {
     return null;
   }
 
+  // Normaliza input: aceita vírgula ou ponto como decimal
+  const parsePreco = (val: string): number => {
+    // Remove tudo exceto dígitos, vírgula e ponto
+    const normalizado = val.replace(/[^0-9,.]/g, '').replace(',', '.');
+    const num = parseFloat(normalizado);
+    return isNaN(num) ? 0 : num;
+  };
+
   const calcular = async () => {
     setErro(null);
     setResultado(null);
@@ -115,9 +124,15 @@ export default function CalculadoraPage() {
       setErro('Preencha o Ponto A e o Ponto B antes de calcular.');
       return;
     }
-    const preco = parseFloat(valorPorKm.replace(',', '.'));
+
+    const preco = parsePreco(valorPorKm);
     if (!preco || preco <= 0) {
-      setErro('Informe um valor por km válido (ex: 2,50).');
+      setErro('Informe seu valor por km. Ex: 2,50 (R$ por quilômetro)');
+      return;
+    }
+    // Validação máxima: R$99/km seria absurdo (protege contra digitação errada)
+    if (preco > 99) {
+      setErro(`Valor por km muito alto (R$ ${preco.toFixed(2)}). Verifique se digitou corretamente. Ex: 2,50`);
       return;
     }
 
@@ -142,7 +157,13 @@ export default function CalculadoraPage() {
 
       // Calcula rota
       const { distanciaKm, duracaoMin } = await calcularRota(latA, lonA, latB, lonB);
-      const valorTotal = parseFloat((distanciaKm * preco).toFixed(2));
+
+      // Valor calculado = km × preço/km
+      const valorCalculado = distanciaKm * preco;
+
+      // Se tiver valor mínimo, aplica
+      const minimo = parsePreco(valorMinimo);
+      const valorTotal = parseFloat(Math.max(valorCalculado, minimo || 0).toFixed(2));
 
       setResultado({ distanciaKm, duracaoMin, valorTotal });
     } catch (err: unknown) {
@@ -154,7 +175,7 @@ export default function CalculadoraPage() {
   };
 
   const limpar = () => {
-    setPontoA(''); setPontoB(''); setValorPorKm('');
+    setPontoA(''); setPontoB(''); setValorPorKm(''); setValorMinimo('');
     setResultado(null); setErro(null);
     setEnderecoALabel(''); setEnderecoBLabel('');
   };
@@ -262,19 +283,42 @@ export default function CalculadoraPage() {
             <div className={calcStyles.fieldGroup}>
               <label className={calcStyles.label}>
                 <DollarSign size={14} className={calcStyles.labelIcon} style={{ color: 'var(--accent-2)' }} />
-                Seu valor por km (R$)
+                Valor por km cobrado (R$)
               </label>
-              <input
-                id="input-valor-km"
-                type="number"
-                inputMode="decimal"
-                className={calcStyles.input}
-                placeholder="Ex: 2.50"
-                value={valorPorKm}
-                onChange={(e) => setValorPorKm(e.target.value)}
-                min="0"
-                step="0.10"
-              />
+              <div className={calcStyles.prefixInputRow}>
+                <span className={calcStyles.prefix}>R$</span>
+                <input
+                  id="input-valor-km"
+                  type="text"
+                  inputMode="decimal"
+                  className={`${calcStyles.input} ${calcStyles.inputWithPrefix}`}
+                  placeholder="Ex: 2,50"
+                  value={valorPorKm}
+                  onChange={(e) => setValorPorKm(e.target.value)}
+                />
+              </div>
+              <p className={calcStyles.fieldHint}>Digite quanto você cobra por quilômetro rodado</p>
+            </div>
+
+            {/* Valor Mínimo (opcional) */}
+            <div className={calcStyles.fieldGroup}>
+              <label className={calcStyles.label}>
+                <DollarSign size={14} className={calcStyles.labelIcon} style={{ color: 'var(--info)' }} />
+                Valor mínimo da corrida (opcional)
+              </label>
+              <div className={calcStyles.prefixInputRow}>
+                <span className={calcStyles.prefix}>R$</span>
+                <input
+                  id="input-valor-min"
+                  type="text"
+                  inputMode="decimal"
+                  className={`${calcStyles.input} ${calcStyles.inputWithPrefix}`}
+                  placeholder="Ex: 8,00"
+                  value={valorMinimo}
+                  onChange={(e) => setValorMinimo(e.target.value)}
+                />
+              </div>
+              <p className={calcStyles.fieldHint}>Se a rota for curta, cobra pelo menos este valor</p>
             </div>
 
             {/* Erro */}
