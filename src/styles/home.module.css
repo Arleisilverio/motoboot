@@ -1,0 +1,659 @@
+/* ============================================
+   Home — Canal Motoboot (Comunidade)
+   Layout: Logo → Carrossel → Canal → Ferramentas → Mapa
+   ============================================ */
+
+/* Page Shell */
+.page {
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--bg-base);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: calc(var(--safe-top) + 8px) 0 8px;
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-md);
+}
+
+.logoWrap { flex-shrink: 0; }
+
+.logoImage {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  position: relative;
+  font-size: 1.1rem;
+}
+
+.iconBtn:active {
+  background: var(--bg-elevated);
+  transform: scale(0.92);
+}
+
+.notifBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--bg-base);
+}
+
+/* ============================================
+   CHANNEL INFO
+   ============================================ */
+.channelInfo {
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  animation: fadeInUp 0.5s var(--ease-out) 0.1s both;
+}
+
+.channelHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.channelAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 2px solid var(--accent);
+}
+
+.channelAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.channelText {
+  flex: 1;
+  min-width: 0;
+}
+
+.channelName {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.channelTagline {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.channelDescription {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: var(--space-md);
+}
+
+/* Channel Stats */
+.channelStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.channelStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.channelStatValue {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.channelStatLabel {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.channelStatDivider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   WHATSAPP / GRUPO BUTTONS
+   ============================================ */
+.whatsappSection {
+  padding: 0 var(--space-md) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeInUp 0.5s var(--ease-out) 0.15s both;
+}
+
+.whatsappBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: #25D366;
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.25);
+}
+
+.whatsappBtn:active {
+  transform: scale(0.96);
+  background: #1da851;
+}
+
+.whatsappIcon {
+  display: flex;
+  align-items: center;
+}
+
+.whatsappIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.groupBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.groupBtn:active {
+  transform: scale(0.96);
+  border-color: var(--accent);
+}
+
+.groupIcon {
+  font-size: 1.15rem;
+}
+
+/* ============================================
+   FERRAMENTAS (tools)
+   ============================================ */
+.section {
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #EF4444;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  background: #EF4444;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #EF4444;
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.toolsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeInUp 0.5s var(--ease-out) 0.2s both;
+}
+
+.toolCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.toolCard:active {
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.toolIconWrap {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toolOrange { background: var(--accent-muted); }
+.toolGreen  { background: var(--success-muted); }
+.toolYellow { background: var(--accent-2-muted); }
+.toolBlue   { background: var(--info-muted); }
+
+.toolEmoji {
+  font-size: 1.3rem;
+}
+
+.toolBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toolName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.toolDesc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.toolArrow {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* ============================================
+   PANIC BUTTON
+   ============================================ */
+.panicSection {
+  padding: 0 var(--space-md) var(--space-md);
+  animation: fadeInUp 0.5s var(--ease-out) 0.25s both;
+}
+
+.panicBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--error);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-panic);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.panicBtn:active {
+  transform: scale(0.96);
+  background: #DC2626;
+}
+
+.panicBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer-panic 4s ease-in-out infinite;
+}
+
+@keyframes shimmer-panic {
+  0%   { left: -100%; }
+  50%  { left: 150%; }
+  100% { left: 150%; }
+}
+
+.panicIcon {
+  font-size: 1.2rem;
+}
+
+.panicHint {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* ============================================
+   MAP — Localização em tempo real
+   ============================================ */
+.mapDescription {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 0 var(--space-md);
+  margin-top: -8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.mapArea {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: var(--bg-card);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mapPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,106,0,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255,195,0,0.04) 0%, transparent 40%),
+    var(--bg-card);
+  position: relative;
+}
+
+.mapPlaceholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, transparent 49.5%, var(--border-subtle) 49.5%, var(--border-subtle) 50.5%, transparent 50.5%),
+    linear-gradient(90deg, transparent 49.5%, var(--border-subtle) 49.5%, var(--border-subtle) 50.5%, transparent 50.5%);
+  background-size: 56px 56px;
+  opacity: 0.25;
+}
+
+.mapIcon {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.4));
+  animation: map-float 3s ease-in-out infinite;
+}
+
+@keyframes map-float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+.mapText {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.mapPinRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: ripple 3s ease-out infinite;
+}
+
+.mapPinRing2 {
+  animation-delay: 1s;
+}
+
+/* Map Legend */
+.mapLegend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(13, 13, 13, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  z-index: 2;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Location share button */
+.locationToggle {
+  padding: var(--space-sm) var(--space-md) var(--space-lg);
+}
+
+.locationBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  transition: all var(--transition-fast);
+}
+
+.locationBtn:active {
+  transform: scale(0.96);
+  background: var(--accent-muted);
+}
+
+/* ============================================
+   BOTTOM NAV
+   ============================================ */
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 100;
+  padding: 0 0 calc(var(--safe-bottom) + 6px);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.navRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: var(--nav-height);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 14px;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color var(--transition-fast);
+  position: relative;
+  min-width: 56px;
+}
+
+.navItem.active {
+  color: var(--accent);
+}
+
+.navItem.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  width: 28px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 3px 3px;
+}
+
+.navItemIcon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.navFab {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--text-inverse);
+  margin-top: -18px;
+  box-shadow: var(--shadow-accent);
+  transition: all var(--transition-base);
+}
+
+.navFab:active {
+  transform: scale(0.9);
+}
+
+/* Page bottom spacing */
+.pageContent {
+  flex: 1;
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  display: flex;
+  flex-direction: column;
+}

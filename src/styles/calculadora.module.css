@@ -1,0 +1,342 @@
+/* ─── Calculadora de Rota — estilos premium ─── */
+
+.wrapper {
+  padding: 0 var(--space-md) calc(var(--space-xl) + 80px);
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInUp 0.4s var(--ease-out) both;
+}
+
+/* Título */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.titleIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--accent-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 3px 0 0;
+}
+
+/* Card do Formulário */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Grupos de campos */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.labelIcon {
+  flex-shrink: 0;
+}
+
+/* Input row (campo + botão GPS) */
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botão GPS */
+.gpsBtn {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  background: var(--accent-muted);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.gpsBtn:active:not(:disabled) {
+  background: var(--accent);
+  color: white;
+  transform: scale(0.94);
+}
+
+.gpsBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Label do endereço resolvido */
+.resolvedLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--success);
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+/* Erro */
+.erroBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  color: #EF4444;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.erroBox svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Botões de ação */
+.btnRow {
+  display: flex;
+  gap: 12px;
+}
+
+.btnPrimary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.01em;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  padding: 16px 18px;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.btnSecondary:active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Animação de loading */
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Card de Resultado ── */
+.resultCard {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideUp 0.4s var(--ease-out) both;
+  box-shadow: 0 0 24px var(--accent-muted);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.resultIcon {
+  color: var(--accent);
+}
+
+/* Grid de distância + tempo */
+.resultGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.resultItem {
+  background: var(--bg-base);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.resultItemLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.resultItemValue {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.resultUnit {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Total (valor final) */
+.resultTotal {
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resultTotalLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resultTotalValue {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.03em;
+}
+
+.resultNote {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

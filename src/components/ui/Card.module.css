@@ -1,0 +1,34 @@
+.card {
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.default {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass {
+  background: rgba(31, 31, 31, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+}
+
+.elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-md);
+}
+
+.pad-sm { padding: var(--space-sm); }
+.pad-md { padding: var(--space-md); }
+.pad-lg { padding: var(--space-lg); }
+
+.hoverable { cursor: pointer; }
+
+.hoverable:active {
+  border-color: var(--accent);
+  transform: scale(0.98);
+}
