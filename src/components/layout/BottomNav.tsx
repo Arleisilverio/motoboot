@@ -12,7 +12,7 @@ export const BottomNav = () => {
     { id: 'nav-home', label: 'Home', icon: '🏠', path: '/' },
     { id: 'nav-tools', label: 'Ferramentas', icon: '🔧', path: '/ferramentas' },
     { id: 'nav-map', label: 'Mapa', icon: '🗺️', path: '#' }, // Placeholder link
-    { id: 'nav-profile', label: 'Perfil', icon: '👤', path: '#' }, // Placeholder link
+    { id: 'nav-profile', label: 'Perfil', icon: '👤', path: '/perfil' },
   ];
 
   return (

@@ -1,7 +1,8 @@
 import Image from "next/image";
 import styles from "@/styles/home.module.css";
 import { CarouselWrapper } from "./CarouselWrapper";
-import { MapPin, Navigation, Signal } from "lucide-react";
+import { MapPin, Signal } from "lucide-react";
+import LiveMapSection from "@/components/LiveMapSection";
 
 export default function Home() {
   return (
@@ -103,33 +104,7 @@ export default function Home() {
           </p>
         </section>
 
-        <section className={styles.mapArea}>
-          <div className={styles.mapPlaceholder}>
-            <div className={styles.mapPinRing} />
-            <div className={`${styles.mapPinRing} ${styles.mapPinRing2}`} />
-            <MapPin className={styles.mapIcon} size={40} color="var(--accent)" strokeWidth={2.5} />
-            <span className={styles.mapText}>Rastreamento Ativado</span>
-          </div>
-
-          {/* Legenda do mapa */}
-          <div className={styles.mapLegend}>
-            <div className={styles.legendItem}>
-              <span className={styles.legendDot} style={{ background: '#FF6A00' }} />
-              <span className={styles.legendLabel}>Motoboot (online)</span>
-            </div>
-            <div className={styles.legendItem}>
-              <span className={styles.legendDot} style={{ background: '#22C55E' }} />
-              <span className={styles.legendLabel}>Motoboys próximos</span>
-            </div>
-          </div>
-        </section>
-
-        <div className={styles.locationToggle}>
-          <button className={styles.locationBtn} id="btn-share-location">
-            <Navigation size={18} />
-            Compartilhar minha localização
-          </button>
-        </div>
+        <LiveMapSection styles={styles} />
       </main>
     </div>
   );
