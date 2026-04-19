@@ -1,92 +1,298 @@
-/**
- * Database Types
- * 
- * Placeholder for Supabase-generated database types.
- * 
- * To generate these types automatically, run:
- *   npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts
- * 
- * Or use the Supabase MCP tool:
- *   generate_typescript_types({ project_id: 'YOUR_PROJECT_ID' })
- */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      deliveries: {
+      clients: {
         Row: {
-          id: string;
-          order_number: string;
-          status: string;
-          pickup_address: string;
-          delivery_address: string;
-          customer_name: string;
-          customer_phone: string | null;
-          estimated_time: number | null;
-          actual_time: number | null;
-          distance: number | null;
-          fee: number;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-          completed_at: string | null;
-          rider_id: string;
-        };
+          contact: string | null
+          created_at: string | null
+          default_rate: number | null
+          id: string
+          name: string
+          notes: string | null
+          user_id: string | null
+        }
         Insert: {
-          id?: string;
-          order_number: string;
-          status?: string;
-          pickup_address: string;
-          delivery_address: string;
-          customer_name: string;
-          customer_phone?: string | null;
-          estimated_time?: number | null;
-          fee: number;
-          notes?: string | null;
-          rider_id: string;
-        };
+          contact?: string | null
+          created_at?: string | null
+          default_rate?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          user_id?: string | null
+        }
         Update: {
-          status?: string;
-          actual_time?: number | null;
-          completed_at?: string | null;
-          notes?: string | null;
-        };
-      };
-      riders: {
+          contact?: string | null
+          created_at?: string | null
+          default_rate?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      collaborators: {
         Row: {
-          id: string;
-          name: string;
-          email: string;
-          phone: string;
-          avatar_url: string | null;
-          vehicle_plate: string;
-          vehicle_model: string;
-          is_online: boolean;
-          rating: number;
-          total_deliveries: number;
-          created_at: string;
-        };
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string | null
+        }
         Insert: {
-          name: string;
-          email: string;
-          phone: string;
-          vehicle_plate: string;
-          vehicle_model: string;
-        };
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id?: string | null
+        }
         Update: {
-          name?: string;
-          phone?: string;
-          avatar_url?: string | null;
-          vehicle_plate?: string;
-          vehicle_model?: string;
-          is_online?: boolean;
-        };
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          email: string | null
+          id: string
+          name: string | null
+          role: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          email?: string | null
+          id: string
+          name?: string | null
+          role?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          name?: string | null
+          role?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          address: string | null
+          client_id: string | null
+          client_name: string | null
+          collaborator_id: string | null
+          collaborator_name: string | null
+          date: string | null
+          delivery_notes: string | null
+          id: string
+          neighborhood: string | null
+          notes: string | null
+          recipient: string | null
+          type: string | null
+          user_id: string | null
+          value: number | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          date?: string | null
+          delivery_notes?: string | null
+          id?: string
+          neighborhood?: string | null
+          notes?: string | null
+          recipient?: string | null
+          type?: string | null
+          user_id?: string | null
+          value?: number | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          date?: string | null
+          delivery_notes?: string | null
+          id?: string
+          neighborhood?: string | null
+          notes?: string | null
+          recipient?: string | null
+          type?: string | null
+          user_id?: string | null
+          value?: number | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
-      delivery_status: 'pending' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
-    };
-  };
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
