@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const supabase = getSupabaseClient();
@@ -23,6 +24,7 @@ export default function LoginPage() {
     if (!supabase) return;
 
     setError('');
+    setMessage('');
     setLoading(true);
 
     try {
@@ -44,13 +46,11 @@ export default function LoginPage() {
 
         if (signupError) throw signupError;
 
-        if (data.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ name, whatsapp })
-            .eq('id', data.user.id);
-            
-          if (profileError) console.error('Erro ao salvar perfil:', profileError);
+        // Se data.session for null, significa que confirmação de e-mail é necessária
+        if (!data.session) {
+          setMessage('Cadastro realizado! Por favor, verifique seu e-mail para confirmar a conta.');
+          setLoading(false);
+          return;
         }
       } else {
         const { error: signinError } = await supabase.auth.signInWithPassword({
@@ -140,7 +140,24 @@ export default function LoginPage() {
             {error}
           </motion.div>
         )}
-
+        {message && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            style={{ 
+              padding: '12px', 
+              background: 'rgba(34, 197, 94, 0.1)', 
+              color: '#22c55e', 
+              borderRadius: '8px', 
+              fontSize: '13px', 
+              textAlign: 'center',
+              marginBottom: '20px',
+              border: '1px solid rgba(34, 197, 94, 0.2)'
+            }}
+          >
+            {message}
+          </motion.div>
+        )}
         <button 
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -219,6 +236,7 @@ export default function LoginPage() {
           onClick={() => {
             setIsRegistering(!isRegistering);
             setError('');
+            setMessage('');
           }}
           disabled={loading}
           style={{ 
