@@ -102,6 +102,14 @@ export default function PerfilPage() {
       
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Meu Perfil</h1>
+        {isAdmin && (
+          <button 
+            onClick={() => router.push('/admin')}
+            style={{ background: 'transparent', color: '#FF6A00', border: '1px solid #FF6A00', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Painel Admin
+          </button>
+        )}
         <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef4444', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
           Sair
         </button>
