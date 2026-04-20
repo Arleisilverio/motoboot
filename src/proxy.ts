@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Middleware: Supabase environment variables are missing!')
+    console.warn('Proxy: Supabase environment variables are missing!')
     return response
   }
 
@@ -68,8 +68,8 @@ export async function middleware(request: NextRequest) {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
 
     if (userError) {
-      // Se houver erro de auth, não trava o middleware, apenas loga
-      console.warn('Middleware Auth Warning:', userError.message)
+      // Se houver erro de auth, não trava o proxy, apenas loga
+      console.warn('Proxy Auth Warning:', userError.message)
     }
 
     // 3. Proteger rotas que exigem login
@@ -101,7 +101,7 @@ export async function middleware(request: NextRequest) {
 
   } catch (err) {
     // 5. CAUSA PRINCIPAL DO ERRO 500: Se qualquer coisa acima falhar, o try-catch impede o crash
-    console.error('CRITICAL MIDDLEWARE ERROR:', err)
+    console.error('CRITICAL PROXY ERROR:', err)
   }
 
   return response

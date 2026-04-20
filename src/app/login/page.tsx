@@ -34,6 +34,12 @@ export default function LoginPage() {
         const { data, error: signupError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: { 
+              name, 
+              whatsapp 
+            }
+          }
         });
 
         if (signupError) throw signupError;
