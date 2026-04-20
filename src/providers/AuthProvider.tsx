@@ -7,11 +7,11 @@ import { useRouter } from 'next/navigation';
 
 type Profile = {
   id: string;
-  name: string;
-  whatsapp: string;
-  helmet_color?: string;
-  role: 'admin' | 'user';
-  created_at: string;
+  name: string | null;
+  whatsapp: string | null;
+  helmet_color?: string | null;
+  role: string;
+  created_at?: string | null;
 };
 
 type AuthContextType = {

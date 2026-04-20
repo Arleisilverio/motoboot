@@ -338,6 +338,7 @@ export type Database = {
         Row: {
           apartment_number: number | null
           avatar_url: string | null
+          created_at: string | null
           email: string | null
           full_name: string | null
           helmet_color: string | null
@@ -352,6 +353,7 @@ export type Database = {
         Insert: {
           apartment_number?: number | null
           avatar_url?: string | null
+          created_at?: string | null
           email?: string | null
           full_name?: string | null
           helmet_color?: string | null
@@ -366,6 +368,7 @@ export type Database = {
         Update: {
           apartment_number?: number | null
           avatar_url?: string | null
+          created_at?: string | null
           email?: string | null
           full_name?: string | null
           helmet_color?: string | null
