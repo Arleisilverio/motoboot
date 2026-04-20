@@ -7,6 +7,7 @@ import { MapPin, Signal, LogIn, LogOut } from "lucide-react";
 import LiveMapSection from "@/components/LiveMapSection";
 import { useAuth } from "@/providers/AuthProvider";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { user, profile, signOut } = useAuth();
