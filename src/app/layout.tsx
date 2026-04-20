@@ -32,6 +32,7 @@ export const viewport: Viewport = {
 };
 
 import { AuthProvider } from "@/providers/AuthProvider";
+import { RadioProvider } from "@/providers/RadioProvider";
 
 export default function RootLayout({
   children,
@@ -42,12 +43,14 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <AuthProvider>
-          <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              {children}
+          <RadioProvider>
+            <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                {children}
+              </div>
+              <BottomNav />
             </div>
-            <BottomNav />
-          </div>
+          </RadioProvider>
         </AuthProvider>
       </body>
     </html>

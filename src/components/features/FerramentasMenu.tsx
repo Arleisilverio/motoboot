@@ -12,8 +12,11 @@ import {
   AlertOctagon 
 } from 'lucide-react';
 
+import { useRadio } from '@/providers/RadioProvider';
+
 export const FerramentasMenu = () => {
   const router = useRouter();
+  const { isPlaying, isBuffering, toggleRadio } = useRadio();
 
   const handleToolClick = (toolName: string) => {
     console.log(`[Motoboot] Abrindo ferramenta: ${toolName}`);
@@ -50,18 +53,19 @@ export const FerramentasMenu = () => {
         </button>
 
         <button 
-          className={styles.toolCard} 
+          className={`${styles.toolCard} ${isPlaying ? styles.toolActive : ''}`} 
           id="tool-radio"
-          onClick={() => handleToolClick('Rádio Online')}
+          onClick={toggleRadio}
         >
-          <div className={`${styles.toolIconWrap} ${styles.toolGreen}`}>
-            <Radio size={24} color="var(--success)" />
+          <div className={`${styles.toolIconWrap} ${isPlaying ? styles.toolPlaying : styles.toolGreen}`}>
+            {isBuffering ? <span className={styles.bufferingSpan}>⌛</span> : <Radio size={24} color={isPlaying ? '#fff' : 'var(--success)'} />}
           </div>
           <div className={styles.toolBody}>
             <span className={styles.toolName}>Rádio Online</span>
-            <span className={styles.toolDesc}>Ouça enquanto pilota</span>
+            <span className={styles.toolDesc}>{isPlaying ? 'Tocando agora...' : 'Ouça enquanto pilota'}</span>
           </div>
-          <ChevronRight size={20} className={styles.toolArrow} />
+          {isPlaying && <div className={styles.playingIndicator}><span></span><span></span><span></span></div>}
+          {!isPlaying && <ChevronRight size={20} className={styles.toolArrow} />}
         </button>
 
         <button 

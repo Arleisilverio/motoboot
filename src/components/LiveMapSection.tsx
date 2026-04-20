@@ -6,28 +6,29 @@ import MapWrapper from './MapWrapper';
 import { subscribeToLocations, shareMyLocation, stopSharingLocation, UserLocation } from '@/services/locationService';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
-export default function LiveMapSection({ styles }: { styles: any }) {
+import { User } from '@supabase/supabase-js';
+import Link from 'next/link';
+
+export default function LiveMapSection({ styles, user }: { styles: any, user: User | null }) {
   const [isSharing, setIsSharing] = useState(false);
   const [members, setMembers] = useState<UserLocation[]>([]);
   const [watchId, setWatchId] = useState<number | null>(null);
   
-  const [userProfile, setUserProfile] = useState<{ id: string, name: string, role: string } | null>(null);
-  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 9));
+  const [userProfile, setUserProfile] = useState<{ id: string, name: string, role: string, helmet_color?: string } | null>(null);
 
   useEffect(() => {
     async function loadUser() {
+      if (!user) return;
       const supabase = getSupabaseClient();
       if (!supabase) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        if (data) {
-          setUserProfile(data as any);
-        }
+      
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (data) {
+        setUserProfile(data as any);
       }
     }
     loadUser();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Inscreve no canal de tempo real
@@ -45,6 +46,8 @@ export default function LiveMapSection({ styles }: { styles: any }) {
   }, [watchId]);
 
   const toggleLocationShare = () => {
+    if (!user) return; // Segurança extra
+
     if (isSharing) {
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
@@ -62,11 +65,12 @@ export default function LiveMapSection({ styles }: { styles: any }) {
           const { latitude, longitude } = position.coords;
           
           shareMyLocation(
-             userProfile?.id || sessionId,
-             userProfile?.name || "Motoboy anônimo",
+             userProfile?.id || user.id,
+             userProfile?.name || "Motoboy",
              latitude,
              longitude,
-             userProfile?.role === 'admin'
+             userProfile?.role === 'admin',
+             userProfile?.helmet_color
           );
         },
         (error) => {
@@ -84,33 +88,50 @@ export default function LiveMapSection({ styles }: { styles: any }) {
   return (
     <>
       <section className={styles.mapArea}>
-        <div style={{ width: '100%', height: '300px', borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>
+        <div className={styles.mapContainerOuter}>
            <MapWrapper members={members} />
+           
+           {!user && (
+             <div className={styles.mapLockedOverlay}>
+               <div className={styles.lockContent}>
+                 <div className={styles.lockIcon}>🔒</div>
+                 <h3>Área Restrita</h3>
+                 <p>Faça login para ver a localização do Motoboot e de outros motoboys em tempo real.</p>
+                 <Link href="/login" className={styles.lockBtn}>
+                   ENTRAR AGORA
+                 </Link>
+               </div>
+             </div>
+           )}
         </div>
 
         {/* Legenda do mapa */}
-        <div className={styles.mapLegend}>
-          <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#FF6A00' }} />
-            <span className={styles.legendLabel}>Motoboot (online)</span>
+        {user && (
+          <div className={styles.mapLegend}>
+            <div className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ background: '#FF6A00' }} />
+              <span className={styles.legendLabel}>Motoboot (online)</span>
+            </div>
+            <div className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ background: '#22C55E' }} />
+              <span className={styles.legendLabel}>Motoboys próximos</span>
+            </div>
           </div>
-          <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#22C55E' }} />
-            <span className={styles.legendLabel}>Motoboys próximos</span>
-          </div>
-        </div>
+        )}
       </section>
 
-      <div className={styles.locationToggle}>
-        <button 
-          className={styles.locationBtn} 
-          onClick={toggleLocationShare}
-          style={{ background: isSharing ? '#22C55E' : 'var(--accent)', color: isSharing ? '#fff' : '#000' }}
-        >
-          <Navigation size={18} />
-          {isSharing ? 'Parar de compartilhar' : 'Compartilhar minha localização'}
-        </button>
-      </div>
+      {user && (
+        <div className={styles.locationToggle}>
+          <button 
+            className={styles.locationBtn} 
+            onClick={toggleLocationShare}
+            style={{ background: isSharing ? '#22C55E' : 'var(--accent)', color: isSharing ? '#fff' : '#000' }}
+          >
+            <Navigation size={18} />
+            {isSharing ? 'Parar de compartilhar' : 'Compartilhar minha localização'}
+          </button>
+        </div>
+      )}
     </>
   );
 }

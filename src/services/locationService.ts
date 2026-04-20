@@ -10,6 +10,7 @@ export type UserLocation = {
   lat: number;
   lng: number;
   isAdmin: boolean;
+  helmetColor?: string;
 };
 
 type LocationUpdateCallback = (locations: UserLocation[]) => void;
@@ -50,6 +51,7 @@ export function subscribeToLocations(
               lat: p.lat,
               lng: p.lng,
               isAdmin: p.isAdmin || false,
+              helmetColor: p.helmetColor,
             });
           }
         });
@@ -73,7 +75,8 @@ export async function shareMyLocation(
   name: string,
   lat: number,
   lng: number,
-  isAdmin = false
+  isAdmin = false,
+  helmetColor?: string
 ): Promise<boolean> {
   const supabase = getSupabaseClient();
   
@@ -88,6 +91,7 @@ export async function shareMyLocation(
     lat,
     lng,
     isAdmin,
+    helmetColor,
   });
 
   return status === 'ok';

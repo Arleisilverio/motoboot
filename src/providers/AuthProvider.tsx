@@ -9,6 +9,7 @@ type Profile = {
   id: string;
   name: string;
   whatsapp: string;
+  helmet_color?: string;
   role: 'admin' | 'user';
   created_at: string;
 };

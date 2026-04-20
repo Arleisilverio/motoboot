@@ -14,11 +14,23 @@ export default function PerfilPage() {
   
   const [nameInput, setNameInput] = useState('');
   const [whatsappInput, setWhatsappInput] = useState('');
+  const [helmetColor, setHelmetColor] = useState('#22C55E');
+
+  const PRESET_COLORS = [
+    { name: 'Esmeralda', value: '#22C55E' },
+    { name: 'Ciano', value: '#06B6D4' },
+    { name: 'Índigo', value: '#6366F1' },
+    { name: 'Rosa', value: '#F43F5E' },
+    { name: 'Âmbar', value: '#F59E0B' },
+    { name: 'Violeta', value: '#8B5CF6' },
+    { name: 'Gelo', value: '#CBD5E1' }
+  ];
 
   useEffect(() => {
     if (profile) {
       setNameInput(profile.name || '');
       setWhatsappInput(profile.whatsapp || '');
+      setHelmetColor(profile.helmet_color || '#22C55E');
     }
   }, [profile]);
 
@@ -30,7 +42,11 @@ export default function PerfilPage() {
     if (supabase) {
       const { error } = await supabase
         .from('profiles')
-        .update({ name: nameInput, whatsapp: whatsappInput })
+        .update({ 
+          name: nameInput, 
+          whatsapp: whatsappInput,
+          helmet_color: helmetColor 
+        })
         .eq('id', profile.id);
         
       if (!error) {
@@ -40,7 +56,7 @@ export default function PerfilPage() {
         alert('Erro ao salvar os dados.');
       }
     }
-    setSaveLoading(true); // Manter true um pouco para feeling de ação
+    setSaveLoading(true);
     setTimeout(() => setSaveLoading(false), 500);
   };
 
@@ -61,7 +77,7 @@ export default function PerfilPage() {
   const isAdmin = profile.role === 'admin';
 
   return (
-    <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
+    <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)', minHeight: '100vh', paddingBottom: '100px' }}>
       
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>Perfil</h1>
@@ -84,14 +100,15 @@ export default function PerfilPage() {
             width: '80px', 
             height: '80px', 
             borderRadius: '24px', 
-            background: 'var(--accent-gradient)', 
+            background: isAdmin ? 'linear-gradient(135deg, #FF6A00, #FFBB00)' : `linear-gradient(135deg, ${helmetColor}, #000)`, 
             display: 'flex', 
             justifyContent: 'center', 
             alignItems: 'center', 
             fontSize: '32px',
-            boxShadow: 'var(--shadow-accent)'
+            boxShadow: `0 8px 16px ${isAdmin ? 'rgba(255, 106, 0, 0.3)' : 'rgba(0,0,0,0.3)'}`,
+            border: '2px solid rgba(255,255,255,0.1)'
           }}>
-            {isAdmin ? '👑' : '👤'}
+            {isAdmin ? '👑' : '🛵'}
           </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>
@@ -112,11 +129,6 @@ export default function PerfilPage() {
               {isAdmin ? 'Administrador' : 'Membro'}
             </div>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-          <label style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px' }}>E-mail de acesso</label>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>{profile.id.slice(0, 8)}... (Oculto por segurança)</div>
         </div>
 
         {isAdmin && (
@@ -145,9 +157,9 @@ export default function PerfilPage() {
         </div>
 
         {isEditing ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Seu Nome/Apelido</label>
+              <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Seu Nome/Apelido</label>
               <input
                 type="text"
                 value={nameInput}
@@ -156,8 +168,9 @@ export default function PerfilPage() {
                 placeholder="Ex: João da Bros"
               />
             </div>
+            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>WhatsApp</label>
+              <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>WhatsApp</label>
               <input
                 type="tel"
                 value={whatsappInput}
@@ -166,7 +179,32 @@ export default function PerfilPage() {
                 placeholder="Ex: 11999999999"
               />
             </div>
-            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+
+            {!isAdmin && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Cor do Capacete no Mapa</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {PRESET_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setHelmetColor(color.value)}
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        backgroundColor: color.value,
+                        border: helmetColor === color.value ? '3px solid white' : 'none',
+                        boxShadow: helmetColor === color.value ? `0 0 10px ${color.value}` : 'none',
+                        transition: 'all 0.2s'
+                      }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
               <button 
                 onClick={() => setIsEditing(false)}
                 style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }}
@@ -184,13 +222,25 @@ export default function PerfilPage() {
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '4px', textTransform: 'uppercase' }}>WhatsApp</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '700' }}>WhatsApp</div>
               <div style={{ fontSize: '16px', color: profile.whatsapp ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                 {profile.whatsapp || 'Não cadastrado'}
               </div>
             </div>
+            
+            {!isAdmin && (
+              <div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', fontWeight: '700' }}>Cor Ativa</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: helmetColor }}></div>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    {PRESET_COLORS.find(c => c.value === helmetColor)?.name || 'Custom'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </motion.div>

@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 import styles from '@/styles/BottomNav.module.css';
 
 import { useAuth } from '@/providers/AuthProvider';
+import { useRadio } from '@/providers/RadioProvider';
 
 export const BottomNav = () => {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { isPlaying, isBuffering, toggleRadio } = useRadio();
 
   const navItems = [
     { id: 'nav-home', label: 'Home', icon: '🏠', path: '/' },
@@ -39,8 +41,13 @@ export const BottomNav = () => {
           </Link>
         ))}
 
-        <button className={styles.navFab} id="nav-radio" aria-label="Rádio Online">
-          📻
+        <button 
+          className={`${styles.navFab} ${isPlaying ? styles.isPlaying : ''} ${isBuffering ? styles.isBuffering : ''}`} 
+          id="nav-radio" 
+          aria-label="Rádio Online"
+          onClick={toggleRadio}
+        >
+          {isBuffering ? '⏳' : isPlaying ? '⏸️' : '📻'}
         </button>
 
         {navItems.slice(2).map((item) => (
