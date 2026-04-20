@@ -1,10 +1,24 @@
+'use client';
+
 import Image from "next/image";
 import styles from "@/styles/home.module.css";
 import { CarouselWrapper } from "./CarouselWrapper";
-import { MapPin, Signal } from "lucide-react";
+import { MapPin, Signal, LogIn, LogOut } from "lucide-react";
 import LiveMapSection from "@/components/LiveMapSection";
+import { useAuth } from "@/providers/AuthProvider";
+import Link from "next/link";
 
 export default function Home() {
+  const { user, profile, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Erro ao sair:", error);
+    }
+  };
+
   return (
     <div className={styles.page}>
       {/* ── Header com Logo ── */}
@@ -21,13 +35,31 @@ export default function Home() {
             />
           </div>
           <div className={styles.headerRight}>
-            <button className={styles.iconBtn} id="btn-notifications" aria-label="Notificações">
-              🔔
-              <span className={styles.notifBadge} />
-            </button>
+            {!user ? (
+              <Link href="/login" className={styles.loginBtnHeader}>
+                <LogIn size={18} />
+                <span>Entrar</span>
+              </Link>
+            ) : (
+              <>
+                <button className={styles.iconBtn} id="btn-notifications" aria-label="Notificações">
+                  🔔
+                  <span className={styles.notifBadge} />
+                </button>
+                <button 
+                  onClick={handleLogout} 
+                  className={styles.logoutBtnHeader}
+                  title="Sair"
+                >
+                  <LogOut size={18} />
+                  <span>Sair</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
+
 
       {/* ── Main Content ── */}
       <main className={styles.pageContent}>

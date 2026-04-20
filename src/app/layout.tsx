@@ -31,6 +31,8 @@ export const viewport: Viewport = {
   themeColor: "#0D0D0D",
 };
 
+import { AuthProvider } from "@/providers/AuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,12 +41,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {children}
+        <AuthProvider>
+          <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {children}
+            </div>
+            <BottomNav />
           </div>
-          <BottomNav />
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

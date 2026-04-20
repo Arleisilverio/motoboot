@@ -1,22 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
 import { getSupabaseClient } from '@/lib/supabase/client';
-import Image from 'next/image';
-
-type Profile = {
-  id: string;
-  email: string;
-  name: string | null;
-  whatsapp: string | null;
-  role: string | null;
-};
+import { motion } from 'framer-motion';
 
 export default function PerfilPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   
@@ -24,37 +16,11 @@ export default function PerfilPage() {
   const [whatsappInput, setWhatsappInput] = useState('');
 
   useEffect(() => {
-    async function loadSession() {
-      const supabase = getSupabaseClient();
-      if (!supabase) return setLoading(false);
-
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        router.replace('/login');
-        return;
-      }
-
-      // Fetch profile from db
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (data) {
-        setProfile(data as Profile);
-        setNameInput(data.name || '');
-        setWhatsappInput(data.whatsapp || '');
-      } else if (error) {
-        console.error('Error fetching profile:', error);
-      }
-      
-      setLoading(false);
+    if (profile) {
+      setNameInput(profile.name || '');
+      setWhatsappInput(profile.whatsapp || '');
     }
-    
-    loadSession();
-  }, [router]);
+  }, [profile]);
 
   const handleSave = async () => {
     if (!profile) return;
@@ -68,129 +34,166 @@ export default function PerfilPage() {
         .eq('id', profile.id);
         
       if (!error) {
-        setProfile({ ...profile, name: nameInput, whatsapp: whatsappInput });
         setIsEditing(false);
+        router.refresh();
       } else {
         alert('Erro ao salvar os dados.');
       }
     }
-    setSaveLoading(false);
-  };
-
-  const handleLogout = async () => {
-    const supabase = getSupabaseClient();
-    if (supabase) {
-      await supabase.auth.signOut();
-      router.push('/');
-    }
+    setSaveLoading(true); // Manter true um pouco para feeling de ação
+    setTimeout(() => setSaveLoading(false), 500);
   };
 
   if (loading) {
     return (
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ color: '#FF6A00' }}>Carregando Perfil...</div>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-base)' }}>
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+          style={{ width: '40px', height: '40px', border: '4px solid var(--accent-muted)', borderTopColor: 'var(--accent)', borderRadius: '50%' }}
+        />
       </div>
     );
   }
 
-  if (!profile) return null; // vai redirecionar pro login via useEffect
+  if (!profile) return null;
 
   const isAdmin = profile.role === 'admin';
 
   return (
-    <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
       
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Meu Perfil</h1>
-        {isAdmin && (
-          <button 
-            onClick={() => router.push('/admin')}
-            style={{ background: 'transparent', color: '#FF6A00', border: '1px solid #FF6A00', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            Painel Admin
-          </button>
-        )}
-        <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef4444', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
-          Sair
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>Perfil</h1>
+        <button 
+          onClick={() => signOut()} 
+          style={{ color: 'var(--error)', fontSize: '14px', fontWeight: '700', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}
+        >
+          SAIR
         </button>
       </header>
 
-      <div style={{ background: '#1c1c1e', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: isAdmin ? '#FF6A00' : '#3f3f46', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '24px' }}>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card"
+        style={{ padding: '24px', marginBottom: '24px' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+          <div style={{ 
+            width: '80px', 
+            height: '80px', 
+            borderRadius: '24px', 
+            background: 'var(--accent-gradient)', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            fontSize: '32px',
+            boxShadow: 'var(--shadow-accent)'
+          }}>
             {isAdmin ? '👑' : '👤'}
           </div>
-          <div>
-            <h2 style={{ fontSize: '20px', margin: 0, fontWeight: 'bold', color: isAdmin ? '#FF6A00' : '#fff' }}>
-              {profile.name || 'Sem Nome'}
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>
+              {profile.name || 'Motoboy Parceiro'}
             </h2>
-            <div style={{ fontSize: '14px', color: '#a1a1aa' }}>
-              {profile.email}
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              padding: '4px 12px', 
+              background: isAdmin ? 'var(--accent-muted)' : 'rgba(255,255,255,0.1)', 
+              color: isAdmin ? 'var(--accent)' : 'var(--text-secondary)', 
+              borderRadius: '20px', 
+              fontSize: '12px', 
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              {isAdmin ? 'Administrador' : 'Membro'}
             </div>
-            {isAdmin && (
-              <span style={{ display: 'inline-block', background: 'rgba(255, 106, 0, 0.2)', color: '#FF6A00', padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginTop: '6px' }}>
-                ADMINISTRADOR
-              </span>
-            )}
           </div>
         </div>
 
-        <hr style={{ border: '0', height: '1px', background: '#2c2c2e', margin: '8px 0' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+          <label style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px' }}>E-mail de acesso</label>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>{profile.id.slice(0, 8)}... (Oculto por segurança)</div>
+        </div>
+
+        {isAdmin && (
+          <button 
+            onClick={() => router.push('/admin')}
+            className="premium-button"
+            style={{ marginBottom: '16px', background: 'var(--bg-elevated)', border: '1px solid var(--accent)', color: 'var(--accent)' }}
+          >
+            📊 Acessar Painel Admin
+          </button>
+        )}
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass-card"
+        style={{ padding: '24px' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Dados Pessoais</h3>
+          {!isEditing && (
+            <button onClick={() => setIsEditing(true)} style={{ color: 'var(--accent)', fontWeight: '700', fontSize: '14px' }}>EDITAR</button>
+          )}
+        </div>
 
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ color: '#a1a1aa', fontSize: '14px' }}>Como quer ser chamado?</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Seu Nome/Apelido</label>
               <input
                 type="text"
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
-                style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#2c2c2e', color: '#fff', fontSize: '16px' }}
+                className="premium-input"
+                placeholder="Ex: João da Bros"
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ color: '#a1a1aa', fontSize: '14px' }}>Número do WhatsApp</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>WhatsApp</label>
               <input
                 type="tel"
                 value={whatsappInput}
                 onChange={(e) => setWhatsappInput(e.target.value)}
-                style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#2c2c2e', color: '#fff', fontSize: '16px' }}
+                className="premium-input"
+                placeholder="Ex: 11999999999"
               />
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               <button 
                 onClick={() => setIsEditing(false)}
-                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #3f3f46', borderRadius: '8px', color: '#fff', fontSize: '16px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }}
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleSave}
                 disabled={saveLoading}
-                style={{ flex: 1, padding: '12px', background: 'var(--accent, #FF6A00)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '16px', fontWeight: 'bold', cursor: saveLoading ? 'wait' : 'pointer' }}
+                className="premium-button"
+                style={{ flex: 1 }}
               >
-                {saveLoading ? 'Salvando...' : 'Salvar Alterações'}
+                {saveLoading ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <div style={{ color: '#a1a1aa', fontSize: '14px', marginBottom: '4px' }}>Telefone (WhatsApp)</div>
-              <div style={{ fontSize: '16px', color: profile.whatsapp ? '#fff' : '#52525b' }}>
-                {profile.whatsapp || 'Não informado'}
+              <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '4px', textTransform: 'uppercase' }}>WhatsApp</div>
+              <div style={{ fontSize: '16px', color: profile.whatsapp ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                {profile.whatsapp || 'Não cadastrado'}
               </div>
             </div>
-            
-            <button 
-              onClick={() => setIsEditing(true)}
-              style={{ padding: '12px', background: '#2c2c2e', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}
-            >
-              Editar Dados
-            </button>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
