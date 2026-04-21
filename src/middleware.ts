@@ -3,73 +3,46 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
+    request: { headers: request.headers },
+  })
+
+  const supabaseUrl = "https://cijhhohosmmvbednsapf.supabase.co";
+  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpamhob2hvc21tdmJlZG5zYXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMjAyMDUsImV4cCI6MjA3NDY5NjIwNX0.KQsXtPydEpJTm9UKGln1O0IUzwylL41CkUCU_pBPZrY";
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) { return request.cookies.get(name)?.value },
+      set(name: string, value: string, options: CookieOptions) {
+        request.cookies.set({ name, value, ...options })
+        response = NextResponse.next({ request: { headers: request.headers } })
+        response.cookies.set({ name, value, ...options })
+      },
+      remove(name: string, options: CookieOptions) {
+        request.cookies.set({ name, value: '', ...options })
+        response = NextResponse.next({ request: { headers: request.headers } })
+        response.cookies.set({ name, value: '', ...options })
+      },
     },
   })
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) return response
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-  // Verifica se o usuário está logado
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isProfilePage = request.nextUrl.pathname.startsWith('/perfil')
-  const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
-  const isLoginPage = request.nextUrl.pathname.startsWith('/login')
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login')
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/perfil') || request.nextUrl.pathname.startsWith('/admin')
 
-  // Se tentar acessar perfil/admin sem estar logado, vai para o login
-  if (!user && (isProfilePage || isAdminPage)) {
+  // Se logado e na página de login, vai para a Home
+  if (user && isAuthPage) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
+
+  // Se não logado e em rota protegida, vai para o login
+  if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // Se já estiver logado e tentar ir para o login, vai para o perfil
-  if (user && isLoginPage) {
-    return NextResponse.redirect(new URL('/perfil', request.url))
-  }
-
-  // Proteção extra para a área de Admin
-  if (user && isAdminPage) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || profile.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
   }
 
   return response
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

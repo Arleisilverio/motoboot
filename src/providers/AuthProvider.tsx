@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useRouter } from 'next/navigation';
 
 type Profile = {
@@ -11,7 +11,6 @@ type Profile = {
   whatsapp: string | null;
   helmet_color?: string | null;
   role: string;
-  created_at?: string | null;
 };
 
 type AuthContextType = {
@@ -30,47 +29,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = getSupabaseClient();
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    setProfile(data);
+  };
 
   useEffect(() => {
-    if (!supabase) return;
-
-    const getData = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-
-      if (currentSession?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentSession.user.id)
-          .single();
-        
-        setProfile(profileData);
-      }
+    const initAuth = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      if (initialSession?.user) await fetchProfile(initialSession.user.id);
       setLoading(false);
     };
 
-    getData();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentSession.user.id)
-          .single();
-        
-        setProfile(profileData);
+        await fetchProfile(currentSession.user.id);
       } else {
         setProfile(null);
       }
 
       if (event === 'SIGNED_IN') {
+        router.push('/'); // Redireciona para a Home ao logar
         router.refresh();
       }
       if (event === 'SIGNED_OUT') {
@@ -81,15 +72,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase, router]);
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   const signOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
   };
 
   return (
@@ -101,8 +88,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
