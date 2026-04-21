@@ -2,18 +2,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/database';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = "https://cijhhohosmmvbednsapf.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpamhob2hvc21tdmJlZG5zYXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMjAyMDUsImV4cCI6MjA3NDY5NjIwNX0.KQsXtPydEpJTm9UKGln1O0IUzwylL41CkUCU_pBPZrY";
 
 /**
  * Server-side Supabase client.
- * Use this in Server Components and API routes.
  */
 export async function getSupabaseServerClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
-  
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -30,9 +25,7 @@ export async function getSupabaseServerClient() {
               cookieStore.set(name, value, options);
             });
           } catch (error) {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignorado em Server Components
           }
         },
       },
