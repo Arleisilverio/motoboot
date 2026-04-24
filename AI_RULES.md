@@ -48,3 +48,7 @@
 ## Skills e Especialistas Disponíveis
 Se você for lidar com Banco de Dados, leia: `skills/supabase-expert/SKILL.md`
 Se você for lidar com Mapas em Tempo Real, leia: `skills/maps-expert/SKILL.md`
+Se você for lidar com Localização e Canais, leia: `skills/realtime-expert/SKILL.md`
+Se você for lidar com Design e Animações, leia: `skills/ui-premium-expert/SKILL.md`
+Se você for lidar com Automação de WhatsApp e Webhooks, leia: `skills/whatsapp-moderator-expert/SKILL.md`
+Se você for lidar com Autenticação e Cookies no Next.js, leia: `skills/auth-ssr-expert/SKILL.md`
