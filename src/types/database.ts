@@ -10,138 +10,10 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      announcements: {
-        Row: {
-          content: string
-          created_at: string | null
-          id: string
-          is_active: boolean
-          updated_at: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean
-          updated_at?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      apartments: {
-        Row: {
-          amount_paid: number | null
-          monthly_rent: number | null
-          next_due_date: string | null
-          number: number
-          payment_request_pending: boolean | null
-          remaining_balance: number | null
-          rent_status: string | null
-          status: string | null
-          tenant_id: string | null
-        }
-        Insert: {
-          amount_paid?: number | null
-          monthly_rent?: number | null
-          next_due_date?: string | null
-          number: number
-          payment_request_pending?: boolean | null
-          remaining_balance?: number | null
-          rent_status?: string | null
-          status?: string | null
-          tenant_id?: string | null
-        }
-        Update: {
-          amount_paid?: number | null
-          monthly_rent?: number | null
-          next_due_date?: string | null
-          number?: number
-          payment_request_pending?: boolean | null
-          remaining_balance?: number | null
-          rent_status?: string | null
-          status?: string | null
-          tenant_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "apartments_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      app_logs: {
-        Row: {
-          created_at: string | null
-          details: Json | null
-          id: string
-          level: string
-          message: string
-          source: string
-        }
-        Insert: {
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          level: string
-          message: string
-          source: string
-        }
-        Update: {
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          level?: string
-          message?: string
-          source?: string
-        }
-        Relationships: []
-      }
-      bookings: {
-        Row: {
-          booked_by: string
-          court_id: number
-          created_at: string | null
-          game_type: string
-          id: string
-          needs_players: boolean | null
-          players: Json
-          start_time: string
-        }
-        Insert: {
-          booked_by: string
-          court_id: number
-          created_at?: string | null
-          game_type: string
-          id?: string
-          needs_players?: boolean | null
-          players: Json
-          start_time: string
-        }
-        Update: {
-          booked_by?: string
-          court_id?: number
-          created_at?: string | null
-          game_type?: string
-          id?: string
-          needs_players?: boolean | null
-          players?: Json
-          start_time?: string
-        }
-        Relationships: []
-      }
       clients: {
         Row: {
           contact: string | null
@@ -170,7 +42,15 @@ export type Database = {
           notes?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collaborators: {
         Row: {
@@ -191,143 +71,10 @@ export type Database = {
           name?: string
           user_id?: string | null
         }
-        Relationships: []
-      }
-      complaints: {
-        Row: {
-          apartment_number: number | null
-          attachments: string[] | null
-          category: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          status: string | null
-          tenant_id: string
-        }
-        Insert: {
-          apartment_number?: number | null
-          attachments?: string[] | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          status?: string | null
-          tenant_id: string
-        }
-        Update: {
-          apartment_number?: number | null
-          attachments?: string[] | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          status?: string | null
-          tenant_id?: string
-        }
         Relationships: [
           {
-            foreignKeyName: "complaints_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      images: {
-        Row: {
-          alt: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          src: string
-          title: string | null
-        }
-        Insert: {
-          alt?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          src: string
-          title?: string | null
-        }
-        Update: {
-          alt?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          src?: string
-          title?: string | null
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string | null
-          dismissible: boolean | null
-          icon: string | null
-          id: string
-          message: string | null
-          read: boolean | null
-          tenant_id: string
-          title: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          dismissible?: boolean | null
-          icon?: string | null
-          id?: string
-          message?: string | null
-          read?: boolean | null
-          tenant_id: string
-          title?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          dismissible?: boolean | null
-          icon?: string | null
-          id?: string
-          message?: string | null
-          read?: boolean | null
-          tenant_id?: string
-          title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_requests: {
-        Row: {
-          apartment_number: number | null
-          created_at: string | null
-          id: string
-          status: string | null
-          tenant_id: string
-        }
-        Insert: {
-          apartment_number?: number | null
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          tenant_id: string
-        }
-        Update: {
-          apartment_number?: number | null
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_requests_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: "collaborators_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -389,6 +136,7 @@ export type Database = {
           client_name: string | null
           collaborator_id: string | null
           collaborator_name: string | null
+          created_at: string | null
           date: string | null
           delivery_notes: string | null
           id: string
@@ -406,6 +154,7 @@ export type Database = {
           client_name?: string | null
           collaborator_id?: string | null
           collaborator_name?: string | null
+          created_at?: string | null
           date?: string | null
           delivery_notes?: string | null
           id?: string
@@ -423,6 +172,7 @@ export type Database = {
           client_name?: string | null
           collaborator_id?: string | null
           collaborator_name?: string | null
+          created_at?: string | null
           date?: string | null
           delivery_notes?: string | null
           id?: string
@@ -449,47 +199,21 @@ export type Database = {
             referencedRelation: "collaborators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "services_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
-      }
-      transactions: {
-        Row: {
-          amount: number
-          category: string | null
-          created_at: string | null
-          description: string
-          id: string
-          receipt_url: string | null
-          transaction_date: string
-          type: string
-        }
-        Insert: {
-          amount: number
-          category?: string | null
-          created_at?: string | null
-          description: string
-          id?: string
-          receipt_url?: string | null
-          transaction_date: string
-          type: string
-        }
-        Update: {
-          amount?: number
-          category?: string | null
-          created_at?: string | null
-          description?: string
-          id?: string
-          receipt_url?: string | null
-          transaction_date?: string
-          type?: string
-        }
-        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      delete_old_bookings: { Args: never; Returns: undefined }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
