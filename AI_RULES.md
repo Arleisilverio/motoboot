@@ -44,3 +44,7 @@
 ### 8. Realtime
 - **Rule**: Supabase Realtime (Presence).
 - **Usage**: Use the Presence channel for location sharing and online status as implemented in `src/services/locationService.ts`.
+
+## Skills e Especialistas Disponíveis
+Se você for lidar com Banco de Dados, leia: `skills/supabase-expert/SKILL.md`
+Se você for lidar com Mapas em Tempo Real, leia: `skills/maps-expert/SKILL.md`
