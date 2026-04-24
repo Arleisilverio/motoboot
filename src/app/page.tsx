@@ -3,23 +3,15 @@
 import Image from "next/image";
 import styles from "@/styles/home.module.css";
 import { CarouselWrapper } from "./CarouselWrapper";
-import { MapPin, Signal, LogIn, LogOut } from "lucide-react";
+import { MapPin, Signal } from "lucide-react";
 import LiveMapSection from "@/components/LiveMapSection";
 import { useAuth } from "@/providers/AuthProvider";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UserHeaderBadge } from "@/components/layout/UserHeaderBadge";
 
 export default function Home() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Erro ao sair:", error);
-    }
-  };
 
   const handleProtectedAction = (e: React.MouseEvent, targetUrl?: string) => {
     if (!user) {
@@ -46,27 +38,7 @@ export default function Home() {
             />
           </div>
           <div className={styles.headerRight}>
-            {!user ? (
-              <Link href="/login" className={styles.loginBtnHeader}>
-                <LogIn size={18} />
-                <span>Entrar</span>
-              </Link>
-            ) : (
-              <>
-                <button className={styles.iconBtn} id="btn-notifications" aria-label="Notificações">
-                  🔔
-                  <span className={styles.notifBadge} />
-                </button>
-                <button 
-                  onClick={handleLogout} 
-                  className={styles.logoutBtnHeader}
-                  title="Sair"
-                >
-                  <LogOut size={18} />
-                  <span>Sair</span>
-                </button>
-              </>
-            )}
+            <UserHeaderBadge />
           </div>
         </div>
       </header>

@@ -10,6 +10,7 @@ type Profile = {
   name: string | null;
   whatsapp: string | null;
   helmet_color?: string | null;
+  avatar_url?: string | null;
   role: string;
 };
 
@@ -33,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, name, whatsapp, helmet_color, avatar_url, role')
       .eq('id', userId)
       .single();
     setProfile(data);
