@@ -1,249 +1,463 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { getSupabaseClient } from '@/lib/supabase/client';
-import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { LogOut, Camera, Trash2, ChevronRight, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import styles from './perfil.module.css';
+
+const PRESET_COLORS = [
+  { name: 'Esmeralda', value: '#22C55E' },
+  { name: 'Ciano',     value: '#06B6D4' },
+  { name: 'Índigo',    value: '#6366F1' },
+  { name: 'Rosa',      value: '#F43F5E' },
+  { name: 'Âmbar',     value: '#F59E0B' },
+  { name: 'Violeta',   value: '#8B5CF6' },
+  { name: 'Branco Gelo', value: '#CBD5E1' },
+  { name: 'Laranja',   value: '#F97316' },
+];
+
+type ToastType = 'success' | 'error';
 
 export default function PerfilPage() {
   const router = useRouter();
-  const { profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
+
+  // ── form state ─────────────────────────────────────────────
   const [isEditing, setIsEditing] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  
-  const [nameInput, setNameInput] = useState('');
-  const [whatsappInput, setWhatsappInput] = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [nameInput, setNameInput]  = useState('');
   const [helmetColor, setHelmetColor] = useState('#22C55E');
 
-  const PRESET_COLORS = [
-    { name: 'Esmeralda', value: '#22C55E' },
-    { name: 'Ciano', value: '#06B6D4' },
-    { name: 'Índigo', value: '#6366F1' },
-    { name: 'Rosa', value: '#F43F5E' },
-    { name: 'Âmbar', value: '#F59E0B' },
-    { name: 'Violeta', value: '#8B5CF6' },
-    { name: 'Gelo', value: '#CBD5E1' }
-  ];
+  // ── avatar state ───────────────────────────────────────────
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── toast ──────────────────────────────────────────────────
+  const [toast, setToast] = useState<{ msg: string; type: ToastType } | null>(null);
+  const showToast = useCallback((msg: string, type: ToastType = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // ── sync form with profile ─────────────────────────────────
   useEffect(() => {
     if (profile) {
       setNameInput(profile.name || '');
-      setWhatsappInput(profile.whatsapp || '');
-      setHelmetColor(profile.helmet_color || '#22C55E');
+      setHelmetColor((profile as any).helmet_color || '#22C55E');
+      setAvatarPreview((profile as any).avatar_url || null);
     }
   }, [profile]);
 
+  // ── SAVE profile (name + helmet_color only) ────────────────
   const handleSave = async () => {
     if (!profile) return;
-    setSaveLoading(true);
-    const supabase = getSupabaseClient();
-    
-    if (supabase) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          name: nameInput, 
-          whatsapp: whatsappInput,
-          helmet_color: helmetColor 
-        })
-        .eq('id', profile.id);
-        
-      if (!error) {
-        setIsEditing(false);
-        router.refresh();
-      } else {
-        alert('Erro ao salvar os dados.');
-      }
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ name: nameInput.trim(), helmet_color: helmetColor })
+      .eq('id', profile.id);
+
+    setSaving(false);
+    if (error) {
+      showToast('Erro ao salvar. Tente novamente.', 'error');
+    } else {
+      setIsEditing(false);
+      showToast('Perfil atualizado com sucesso!');
+      router.refresh();
     }
-    setSaveLoading(true);
-    setTimeout(() => setSaveLoading(false), 500);
   };
 
+  // ── UPLOAD avatar ──────────────────────────────────────────
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Valida tamanho (max 3MB) e tipo
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('Imagem muito grande. Máx 3MB.', 'error');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      showToast('Selecione uma imagem válida.', 'error');
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    // Pré-visualização local imediata
+    const localUrl = URL.createObjectURL(file);
+    setAvatarPreview(localUrl);
+
+    // Upload para storage: avatars/{userId}/avatar.{ext}
+    const ext = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) {
+      showToast('Erro no upload. Tente novamente.', 'error');
+      setAvatarPreview((profile as any)?.avatar_url || null);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    // Gera URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    // Salva URL no perfil
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', user.id);
+
+    setUploadingAvatar(false);
+    if (updateError) {
+      showToast('Foto enviada, mas erro ao salvar URL.', 'error');
+    } else {
+      setAvatarPreview(publicUrl);
+      showToast('Foto de perfil atualizada!');
+      router.refresh();
+    }
+  };
+
+  // ── DELETE avatar ──────────────────────────────────────────
+  const handleDeleteAvatar = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+
+    // Remove arquivos do storage (tenta .jpg, .jpeg, .png, .webp)
+    const exts = ['jpg', 'jpeg', 'png', 'webp'];
+    for (const ext of exts) {
+      await supabase.storage.from('avatars').remove([`${user.id}/avatar.${ext}`]);
+    }
+
+    // Limpa URL no perfil
+    await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+
+    setAvatarPreview(null);
+    setUploadingAvatar(false);
+    showToast('Foto removida.');
+    router.refresh();
+  };
+
+  // ── LOADING ────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-base)' }}>
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          style={{ width: '40px', height: '40px', border: '4px solid var(--accent-muted)', borderTopColor: 'var(--accent)', borderRadius: '50%' }}
-        />
+      <div className={styles.page}>
+        <div className={styles.loadingWrap}>
+          <div className={styles.spinner} />
+        </div>
       </div>
     );
   }
 
-  if (!profile) return null;
+  // ── NOT LOGGED IN ──────────────────────────────────────────
+  if (!user || !profile) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.gateWrap}>
+          <span className={styles.gateIcon}>🏍️</span>
+          <p className={styles.gateTitle}>Faça login para ver seu perfil</p>
+          <p className={styles.gateSub}>Cadastre-se ou entre na sua conta para acessar todas as funcionalidades da comunidade Motoboot.</p>
+          <Link href="/login" className={styles.gateBtn}>Entrar / Cadastrar</Link>
+        </div>
+      </div>
+    );
+  }
 
   const isAdmin = profile.role === 'admin';
+  const displayName = profile.name || 'Motoboy Parceiro';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)', minHeight: '100vh', paddingBottom: '100px' }}>
-      
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>Perfil</h1>
-        <button 
-          onClick={() => signOut()} 
-          style={{ color: 'var(--error)', fontSize: '14px', fontWeight: '700', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}
-        >
-          SAIR
-        </button>
-      </header>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card"
-        style={{ padding: '24px', marginBottom: '24px' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-          <div style={{ 
-            width: '80px', 
-            height: '80px', 
-            borderRadius: '24px', 
-            background: isAdmin ? 'linear-gradient(135deg, #FF6A00, #FFBB00)' : `linear-gradient(135deg, ${helmetColor}, #000)`, 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            fontSize: '32px',
-            boxShadow: `0 8px 16px ${isAdmin ? 'rgba(255, 106, 0, 0.3)' : 'rgba(0,0,0,0.3)'}`,
-            border: '2px solid rgba(255,255,255,0.1)'
-          }}>
-            {isAdmin ? '👑' : '🛵'}
-          </div>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px' }}>
-              {profile.name || 'Motoboy Parceiro'}
-            </h2>
-            <div style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              padding: '4px 12px', 
-              background: isAdmin ? 'var(--accent-muted)' : 'rgba(255,255,255,0.1)', 
-              color: isAdmin ? 'var(--accent)' : 'var(--text-secondary)', 
-              borderRadius: '20px', 
-              fontSize: '12px', 
-              fontWeight: '800',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              {isAdmin ? 'Administrador' : 'Membro'}
-            </div>
-          </div>
-        </div>
-
-        {isAdmin && (
-          <button 
-            onClick={() => router.push('/admin')}
-            className="premium-button"
-            style={{ marginBottom: '16px', background: 'var(--bg-elevated)', border: '1px solid var(--accent)', color: 'var(--accent)' }}
-          >
-            📊 Acessar Painel Admin
+    <div className={styles.page}>
+      {/* ── HERO ───────────────────────────────────────────── */}
+      <div className={styles.hero}>
+        <div className={styles.heroHeader}>
+          <h1 className={styles.heroTitle}>Meu Perfil</h1>
+          <button className={styles.logoutBtn} onClick={signOut}>
+            <LogOut size={14} />
+            Sair
           </button>
-        )}
-      </motion.div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="glass-card"
-        style={{ padding: '24px' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Dados Pessoais</h3>
-          {!isEditing && (
-            <button onClick={() => setIsEditing(true)} style={{ color: 'var(--accent)', fontWeight: '700', fontSize: '14px' }}>EDITAR</button>
-          )}
         </div>
 
-        {isEditing ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Seu Nome/Apelido</label>
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                className="premium-input"
-                placeholder="Ex: João da Bros"
-              />
+        {/* ── AVATAR ─────────────────────────────────────── */}
+        <div className={styles.avatarSection}>
+          <div className={styles.avatarRing}>
+            <div className={`${styles.avatarCircle} ${isAdmin ? styles.avatarCircleAdmin : ''}`}>
+              {avatarPreview ? (
+                <Image
+                  src={avatarPreview}
+                  alt={displayName}
+                  width={100}
+                  height={100}
+                  className={styles.avatarImg}
+                  unoptimized
+                />
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>WhatsApp</label>
-              <input
-                type="tel"
-                value={whatsappInput}
-                onChange={(e) => setWhatsappInput(e.target.value)}
-                className="premium-input"
-                placeholder="Ex: 11999999999"
-              />
-            </div>
+            {uploadingAvatar && <div className={styles.avatarUploading} />}
+            {/* Botão câmera */}
+            <button
+              className={styles.avatarEditBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              title="Alterar foto"
+            >
+              <Camera size={14} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className={styles.fileInput}
+              onChange={handleAvatarChange}
+            />
+          </div>
 
-            {!isAdmin && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <label style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Cor do Capacete no Mapa</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => setHelmetColor(color.value)}
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
-                        backgroundColor: color.value,
-                        border: helmetColor === color.value ? '3px solid white' : 'none',
-                        boxShadow: helmetColor === color.value ? `0 0 10px ${color.value}` : 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-              <button 
-                onClick={() => setIsEditing(false)}
-                style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }}
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={saveLoading}
-                className="premium-button"
-                style={{ flex: 1 }}
-              >
-                {saveLoading ? 'Salvando...' : 'Salvar'}
-              </button>
+          {/* Nome + role */}
+          <div className={styles.nameRow}>
+            <div className={styles.userName}>{displayName}</div>
+            <div className={`${styles.roleBadge} ${isAdmin ? styles.roleBadgeAdmin : styles.roleBadgeMember}`}>
+              {isAdmin ? '👑 Administrador' : '🛵 Membro'}
             </div>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '700' }}>WhatsApp</div>
-              <div style={{ fontSize: '16px', color: profile.whatsapp ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                {profile.whatsapp || 'Não cadastrado'}
-              </div>
-            </div>
-            
-            {!isAdmin && (
-              <div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', fontWeight: '700' }}>Cor Ativa</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: helmetColor }}></div>
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    {PRESET_COLORS.find(c => c.value === helmetColor)?.name || 'Custom'}
-                  </span>
-                </div>
-              </div>
+
+          {/* Botões de avatar */}
+          <div className={styles.avatarActions}>
+            <button
+              className={`${styles.avatarBtn} ${styles.avatarBtnPrimary}`}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+            >
+              <Camera size={13} />
+              {uploadingAvatar ? 'Enviando…' : 'Alterar foto'}
+            </button>
+            {avatarPreview && (
+              <button
+                className={`${styles.avatarBtn} ${styles.avatarBtnDanger}`}
+                onClick={handleDeleteAvatar}
+                disabled={uploadingAvatar}
+              >
+                <Trash2 size={13} />
+                Remover
+              </button>
             )}
           </div>
+          <p className={styles.avatarHint}>Foto de perfil ou da sua moto · Máx 3MB</p>
+        </div>
+      </div>
+
+      {/* ── CONTEÚDO ───────────────────────────────────────── */}
+      <div className={styles.content}>
+
+        {/* Admin shortcut */}
+        {isAdmin && (
+          <motion.button
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.adminCard}
+            onClick={() => router.push('/admin')}
+          >
+            <span className={styles.adminCardIcon}>📊</span>
+            <div className={styles.adminCardText}>
+              <div className={styles.adminCardTitle}>Painel Administrativo</div>
+              <div className={styles.adminCardSub}>Gerenciar membros, alertas e configurações</div>
+            </div>
+            <ChevronRight size={18} className={styles.adminCardArrow} />
+          </motion.button>
         )}
-      </motion.div>
+
+        {/* ── DADOS PESSOAIS ─────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className={styles.card}
+        >
+          <div className={styles.cardHeader}>
+            <span className={styles.cardTitle}>Dados Pessoais</span>
+            {!isEditing && (
+              <button className={styles.editBtn} onClick={() => setIsEditing(true)}>
+                EDITAR
+              </button>
+            )}
+          </div>
+
+          {isEditing ? (
+            <div className={styles.fieldGroup}>
+              {/* Nome (editável) */}
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>Nome / Apelido</label>
+                <input
+                  type="text"
+                  className={styles.fieldInput}
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Ex: João da Bros"
+                  maxLength={40}
+                />
+              </div>
+
+              {/* WhatsApp (BLOQUEADO — read-only) */}
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>
+                  WhatsApp
+                  <Lock size={11} className={styles.lockIcon} />
+                </label>
+                <input
+                  type="tel"
+                  className={`${styles.fieldInput} ${styles.fieldInputLocked}`}
+                  value={profile.whatsapp || ''}
+                  readOnly
+                  tabIndex={-1}
+                />
+                <span className={styles.lockedNote}>
+                  <Lock size={10} />
+                  Número não pode ser alterado por segurança
+                </span>
+              </div>
+
+              {/* Cor do capacete (só motoboys comuns) */}
+              {!isAdmin && (
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel}>Cor do Capacete no Mapa</label>
+                  <div className={styles.helmetSection}>
+                    <div className={styles.helmetPreview}>
+                      <div className={styles.helmetDot} style={{ background: helmetColor, boxShadow: `0 0 8px ${helmetColor}` }} />
+                      <span className={styles.helmetName}>
+                        {PRESET_COLORS.find(c => c.value === helmetColor)?.name ?? 'Personalizado'}
+                      </span>
+                    </div>
+                    <div className={styles.colorPalette}>
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color.value}
+                          className={`${styles.colorSwatch} ${helmetColor === color.value ? styles.colorSwatchActive : ''}`}
+                          style={{
+                            backgroundColor: color.value,
+                            boxShadow: helmetColor === color.value ? `0 0 12px ${color.value}` : 'none',
+                          }}
+                          onClick={() => setHelmetColor(color.value)}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Ações */}
+              <div className={styles.actionRow}>
+                <button className={styles.cancelBtn} onClick={() => { setIsEditing(false); setNameInput(profile.name || ''); }}>
+                  Cancelar
+                </button>
+                <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+                  {saving ? 'Salvando…' : 'Salvar Perfil'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.fieldGroup}>
+              {/* Nome */}
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Nome / Apelido</span>
+                <span className={`${styles.fieldValue} ${!profile.name ? styles.fieldValueMuted : ''}`}>
+                  {profile.name || 'Não definido'}
+                </span>
+              </div>
+
+              {/* WhatsApp */}
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>
+                  WhatsApp
+                  <Lock size={11} className={styles.lockIcon} />
+                </span>
+                <span className={`${styles.fieldValue} ${!profile.whatsapp ? styles.fieldValueMuted : ''}`}>
+                  {profile.whatsapp || 'Não cadastrado'}
+                </span>
+              </div>
+
+              {/* E-mail (somente leitura) */}
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>
+                  E-mail
+                  <Lock size={11} className={styles.lockIcon} />
+                </span>
+                <span className={styles.fieldValue}>{user.email}</span>
+              </div>
+
+              {/* Cor do capacete (view only) */}
+              {!isAdmin && (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Cor no Mapa</span>
+                  <div className={styles.helmetPreview}>
+                    <div className={styles.helmetDot} style={{ background: helmetColor, boxShadow: `0 0 8px ${helmetColor}` }} />
+                    <span className={styles.helmetName}>
+                      {PRESET_COLORS.find(c => c.value === helmetColor)?.name ?? helmetColor}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+
+        {/* ── CONTA ────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className={styles.card}
+        >
+          <div className={styles.cardHeader}>
+            <span className={styles.cardTitle}>Conta</span>
+          </div>
+          <div className={styles.fieldGroup}>
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Função</span>
+              <span className={styles.fieldValue}>{isAdmin ? 'Administrador Motoboot' : 'Membro da Comunidade'}</span>
+            </div>
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Membro desde</span>
+              <span className={styles.fieldValue}>
+                {user.created_at
+                  ? new Date(user.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+                  : '—'}
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
+
+      {/* ── TOAST ──────────────────────────────────────────── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="toast"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className={`${styles.toast} ${toast.type === 'success' ? styles.toastSuccess : styles.toastError}`}
+          >
+            {toast.type === 'success' ? <CheckCircle2 size={15} style={{ display: 'inline', marginRight: 6 }} /> : <AlertCircle size={15} style={{ display: 'inline', marginRight: 6 }} />}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
